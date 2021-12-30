@@ -80,9 +80,9 @@ public class GUI extends JFrame {
     Action setOutput = new OpenDirectory("Output Directory");
     Action setProcessedOutput = new OpenDirectory("Processed Output Directory");
     Action createFont = new AbstractAction() {
-        File outputDir;
-        File processedOutputDir;
-        File templateFile;
+        File outputDir = ((OpenDirectory) setOutput).getDirectory();
+        File processedOutputDir = ((OpenDirectory) setProcessedOutput).getDirectory();
+        File templateFile = ((OpenFile) openTemplate).getFile();
         Template template;
         ImageProcessor imgProcessor;
 
