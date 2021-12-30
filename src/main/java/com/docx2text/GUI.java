@@ -4,7 +4,6 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -12,28 +11,18 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
-import org.apache.commons.io.FilenameUtils;
-
 public class GUI extends JFrame { 
-    
+    Template template;
+    File templateFile;
+    File outputDirectory;
+    File processedOutputDirectory;
+
     public class OpenFile extends AbstractAction {
         JFileChooser fileChooser;
         File selectedFile;
-        String extension;
         public OpenFile(String name) {
             super(name);
             fileChooser = new JFileChooser();
-            extension = "";
-        }
-
-        public OpenFile(String name, String ext) {
-            super(name);
-            fileChooser = new JFileChooser();
-            extension = ext;
-        }
-
-        public File getFile() {
-            return selectedFile;
         }
 
         @Override
@@ -55,10 +44,6 @@ public class GUI extends JFrame {
             fileChooser = new JFileChooser();
         }
 
-        public File getDirectory() {
-            return selectedDirectory;
-        }
-
         @Override
         public void actionPerformed(ActionEvent e) {
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -74,41 +59,11 @@ public class GUI extends JFrame {
     JButton docxButton;
     JButton outputDirectoryButton;
     JButton processedOutputDirectoryButton;
-    JButton createFontButton;
 
-    Action openTemplate = new OpenFile("Template", "pdf");
-    Action openDocx = new OpenFile("Docx", "docx");
+    Action openTemplate = new OpenFile("Template");
+    Action openDocx = new OpenFile("Docx");
     Action setOutput = new OpenDirectory("Output Directory");
     Action setProcessedOutput = new OpenDirectory("Processed Output Directory");
-    Action createFont = new AbstractAction() {
-        File outputDir = ((OpenDirectory) setOutput).getDirectory();
-        File processedOutputDir = ((OpenDirectory) setProcessedOutput).getDirectory();
-        File templateFile = ((OpenFile) openTemplate).getFile();
-        Template template;
-        ImageProcessor imgProcessor;
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            template = new Template(templateFile, outputDir);
-            try {
-                template.processTemplate();
-            } catch (IOException e1) {
-                System.out.println("ERROR: UNABLE TO OPEN FILE");
-            }
-
-            for (File file : outputDir.listFiles()) {
-                try {
-                    imgProcessor = new ImageProcessor(file);
-                    imgProcessor.saveImage(imgProcessor.processImage(), processedOutputDir, FilenameUtils.removeExtension(file.toString()) + ".png");
-                } catch (IOException exception) {
-                    System.err.println("ERROR: UNABLE TO OPEN IMAGE");
-                    exception.printStackTrace();
-                    break;
-                }
-            }
-
-        }
-    };
 
     public GUI() {
         super("DOCX2TEXT");
@@ -125,15 +80,10 @@ public class GUI extends JFrame {
         docxButton = new JButton(openDocx);
         outputDirectoryButton = new JButton(setOutput);
         processedOutputDirectoryButton = new JButton(setProcessedOutput);
-        createFontButton = new JButton(createFont);
-        createFontButton.setText("Create Font");
-
-
 
         contentPane.add(templateButton);
         contentPane.add(docxButton);
         contentPane.add(outputDirectoryButton);
         contentPane.add(processedOutputDirectoryButton);
-        contentPane.add(createFontButton);
     }
 }
