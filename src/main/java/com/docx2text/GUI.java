@@ -1,4 +1,5 @@
 package com.docx2text;
+
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
