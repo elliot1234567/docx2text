@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -11,8 +12,11 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
+import org.apache.commons.io.FilenameUtils;
+
 public class GUI extends JFrame { 
     Template template;
+    ImageProcessor imgProcessor;
     File templateFile;
     File outputDirectory;
     File processedOutputDirectory;
@@ -23,6 +27,11 @@ public class GUI extends JFrame {
         public OpenFile(String name) {
             super(name);
             fileChooser = new JFileChooser();
+        }
+
+        public File getFile() {
+            return selectedFile;
+            
         }
 
         @Override
@@ -43,6 +52,10 @@ public class GUI extends JFrame {
             super(name);
             fileChooser = new JFileChooser();
         }
+        
+        public File getDirectory() {
+            return selectedDirectory;
+        }
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -59,11 +72,41 @@ public class GUI extends JFrame {
     JButton docxButton;
     JButton outputDirectoryButton;
     JButton processedOutputDirectoryButton;
+    JButton process;
 
-    Action openTemplate = new OpenFile("Template");
-    Action openDocx = new OpenFile("Docx");
-    Action setOutput = new OpenDirectory("Output Directory");
-    Action setProcessedOutput = new OpenDirectory("Processed Output Directory");
+    OpenFile openTemplate = new OpenFile("Template");
+    OpenFile openDocx = new OpenFile("Docx");
+    OpenDirectory setOutput = new OpenDirectory("Output Directory");
+    OpenDirectory setProcessedOutput = new OpenDirectory("Processed Output Directory");
+
+    Action processTemplate = new AbstractAction() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            templateFile = openTemplate.getFile();
+            outputDirectory = setOutput.getDirectory();
+            processedOutputDirectory = setProcessedOutput.getDirectory();
+
+            template = new Template(templateFile, outputDirectory);
+            try {
+                template.processTemplate();
+            } catch (IOException e1) {
+                System.err.println("ERROR: UNABLE TO PROCESS FILE");
+                e1.printStackTrace();
+            }
+
+            for (File file : outputDirectory.listFiles()) {
+                try {
+                    imgProcessor = new ImageProcessor(file);
+                    imgProcessor.saveImage(imgProcessor.processImage(), processedOutputDirectory, FilenameUtils.getBaseName(file.toString()));
+                } catch (IOException e1) {
+                    System.err.println("ERROR: UNABLE TO PROCESS IMAGE");
+                    e1.printStackTrace();
+                    break;
+                }
+            }
+        }
+    };
 
     public GUI() {
         super("DOCX2TEXT");
@@ -80,10 +123,13 @@ public class GUI extends JFrame {
         docxButton = new JButton(openDocx);
         outputDirectoryButton = new JButton(setOutput);
         processedOutputDirectoryButton = new JButton(setProcessedOutput);
+        process = new JButton(processTemplate);
+        process.setText("Process");
 
         contentPane.add(templateButton);
         contentPane.add(docxButton);
         contentPane.add(outputDirectoryButton);
         contentPane.add(processedOutputDirectoryButton);
+        contentPane.add(process);
     }
 }
